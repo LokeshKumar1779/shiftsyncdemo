@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { test } from "./fixtures";
+import productsData from "../src/test-data/products.json";
 
 const CREDENTIALS = {
   username: "standard_user",
@@ -15,6 +16,7 @@ const CUSTOMER = {
   lastName: "Doe",
   postalCode: "10001",
 };
+const DATA_DRIVEN_PRODUCTS = productsData.products;
 
 test.describe("SauceDemo – Purchase Flow", () => {
   test("should login, add first product to cart, checkout and confirm order", async ({
@@ -143,4 +145,28 @@ test.describe("SauceDemo – Authentication Error Scenarios", () => {
     await expect(errorMessage).toContainText("Username is required");
     await expect(page).not.toHaveURL(/inventory/);
   });
+});
+
+test.describe("SauceDemo – Data Driven Product Scenarios", () => {
+  for (const productName of DATA_DRIVEN_PRODUCTS) {
+    test(`should add "${productName}" to cart and validate details`, async ({
+      loginPage,
+      inventoryPage,
+      cartPage,
+    }) => {
+      await loginPage.navigate();
+      await loginPage.verifyPageLoaded();
+      await loginPage.login(CREDENTIALS.username, CREDENTIALS.password);
+      await inventoryPage.verifyPageLoaded();
+
+      const productPrice = await inventoryPage.getProductPriceByName(productName);
+      await inventoryPage.addProductToCartByName(productName);
+      await inventoryPage.verifyProductAddedToCartByName(productName);
+      await inventoryPage.verifyCartBadgeCount(1);
+
+      await inventoryPage.goToCart();
+      await cartPage.verifyPageLoaded();
+      await cartPage.verifyCartContainsProduct(productName, productPrice);
+    });
+  }
 });

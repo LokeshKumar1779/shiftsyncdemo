@@ -32,4 +32,16 @@ export class CartPage {
     await expect(this.cartItemName).toHaveText(productName);
     await expect(this.cartItemPrice).toHaveText(productPrice);
   }
+
+  async verifyCartContainsProduct(productName: string, productPrice: string) {
+    const cartItem = this.page
+      .locator(".cart_item")
+      .filter({
+        has: this.page.locator(".inventory_item_name", { hasText: productName }),
+      })
+      .first();
+
+    await expect(cartItem.locator(".inventory_item_name")).toHaveText(productName);
+    await expect(cartItem.locator(".inventory_item_price")).toHaveText(productPrice);
+  }
 }

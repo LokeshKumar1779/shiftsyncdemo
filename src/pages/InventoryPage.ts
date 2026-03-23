@@ -43,9 +43,23 @@ export class InventoryPage {
     return this.getItemPrice(this.inventoryItems.first()).innerText();
   }
 
+  getProductByName(productName: string): Locator {
+    return this.inventoryItems.filter({
+      has: this.page.locator(".inventory_item_name", { hasText: productName }),
+    });
+  }
+
+  async getProductPriceByName(productName: string): Promise<string> {
+    return this.getItemPrice(this.getProductByName(productName)).innerText();
+  }
+
   async addFirstProductToCart() {
     const firstItem = this.inventoryItems.first();
     await this.getAddToCartButton(firstItem).click();
+  }
+
+  async addProductToCartByName(productName: string) {
+    await this.getAddToCartButton(this.getProductByName(productName)).click();
   }
 
   async goToCart() {
@@ -65,5 +79,11 @@ export class InventoryPage {
   async verifyFirstItemAddedToCart() {
     const firstItem = this.inventoryItems.first();
     await expect(this.getRemoveButton(firstItem)).toBeVisible();
+  }
+
+  async verifyProductAddedToCartByName(productName: string) {
+    await expect(
+      this.getRemoveButton(this.getProductByName(productName)),
+    ).toBeVisible();
   }
 }
